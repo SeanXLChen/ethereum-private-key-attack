@@ -20,6 +20,8 @@ import lookups
 import monitoring
 import targets
 
+TEST_PRIVATE_KEY = "66873FDEF9BEC6F5D39D840CD7DDE4CA94270D3BF3AA9C5B372CDB5E07EADEFA"
+TEST_ADDRESS = "Dd36d7b54d489f4c2c0A7Ad57fc7180bAdD60072"
 
 ETH_ADDRESS_LENGTH = 40
 
@@ -135,9 +137,13 @@ def EchoHeader():
               default=False,
               is_flag=True,
               help='Skip the animation')
+@click.option('--test-mode',
+              is_flag=True,
+              default=False,
+              help='Run in test mode with a fixed private key')
 @click.argument('eth_address', nargs=-1)
 @click.command()
-def main(fps, timeout, max_guesses, addresses, port, no_port, strategy, quiet, eth_address):
+def main(fps, timeout, max_guesses, addresses, port, no_port, strategy, quiet, eth_address, test_mode):
     if eth_address:
         click.echo('Attacking specific ETH addresses: ', nl=False)
         addresses = [address.lower() for address in eth_address]
@@ -199,8 +205,12 @@ def main(fps, timeout, max_guesses, addresses, port, no_port, strategy, quiet, e
 
             varz.num_tries += 1
 
-            # calculate a public eth address from a random private key
-            private_key_hex, address = SigningKey.public_address() 
+            # 在测试模式下使用固定私钥，否则使用随机私钥
+            if test_mode:
+                private_key_hex, address = SigningKey.public_address(TEST_PRIVATE_KEY)
+            else:
+                private_key_hex, address = SigningKey.public_address()
+
             current = target_addresses.FindClosestMatch(address)
             strength, _, closest = current
 
