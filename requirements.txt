@@ -8,3 +8,4 @@ pysha3>=1.0.2
 pyyaml
 pytest
 sortedcollections
+beautifulsoup4
