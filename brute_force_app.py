@@ -106,6 +106,27 @@ def EchoHeader():
                                                        'address',
                                                        'closest'))
 
+def save_match_to_file(match_data, output_file="matches.yaml"):
+    """Save matching addresses to a YAML file"""
+    try:
+        # 读取现有匹配记录
+        if os.path.exists(output_file):
+            with open(output_file, 'r') as f:
+                existing_matches = yaml.safe_load(f) or []
+        else:
+            existing_matches = []
+        
+        # 添加新匹配记录
+        match_data['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S')
+        existing_matches.append(match_data)
+        
+        # 保存到文件
+        with open(output_file, 'w') as f:
+            yaml.dump(existing_matches, f, default_flow_style=False)
+            
+    except Exception as e:
+        click.echo(f"Error saving match: {e}")
+
 @click.option('--fps',
               default=60,
               help='Use this many frames per second when showing guesses.  '
@@ -240,10 +261,14 @@ def main(fps, timeout, max_guesses, addresses, port, no_port, strategy, quiet, e
                 best_guess_report = {
                     'private-key': private_key_hex,
                     'address': address,
+                    'strength': strength,
                 }
                 if closest is not None:
                     best_guess_report['closest'] = 'https://etherscan.io/address/0x%s' % (closest,)
                 varz.best_guess = best_guess_report
+                
+                # 保存匹配结果到文件
+                save_match_to_file(best_guess_report)
 
     except KeyboardInterrupt:
         pass
